@@ -1,17 +1,17 @@
-from framework import App, Response, jsonify
+from framework import App, Response, jsonify, Request
 
 app = App()
 
 @app.route('/')
-def index(request):
+def index(request: Request):
     return Response('<h1>Hello Campus Party</h1>')
 
 @app.route('/hello/{name}')
-def hello(request, name):
+def hello(name):
     return Response(f'<h1>Hello, {name} </h1>')
 
 @app.route('/json')
-def hello(request):
+def hello():
     return jsonify({
         'hello': 'World',
     })

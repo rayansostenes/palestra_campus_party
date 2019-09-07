@@ -46,6 +46,13 @@ class App:
     def __init__(self):
         self.routing = []
 
+    def resolve_arguments(self, callback, request):
+        kwargs = {}
+        for name, _type in callback.__annotations__.items():
+            if _type is Request:
+                kwargs[name] = request 
+        return kwargs
+
     def route(self, pattern):
         def wrapper(callback):
             self.routing.append((pattern, callback))
@@ -62,8 +69,9 @@ class App:
     def __call__(self, environ, start_response):
         try:
             request = Request(environ)
-            callback, kwargs = self.match(request.path) 
-            response = callback(request, **kwargs)
+            callback, kwargs = self.match(request.path)
+            _kwargs = self.resolve_arguments(callback, request)
+            response = callback(**kwargs, **_kwargs)
         except NotFound:
             response = Response('<h1>404 Not Found</h1>', status=404)
         start_response(response.status, response.headers.items())
