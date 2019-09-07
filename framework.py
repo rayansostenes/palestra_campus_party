@@ -1,4 +1,8 @@
 import wsgiref.headers
+import re
+
+class NotFound(Exception):
+    pass
 
 class Request:
     def __init__(self, environ):
@@ -34,9 +38,29 @@ class Response:
 
 
 class App:
+    def __init__(self):
+        self.routing = []
+
+    def route(self, pattern):
+        def wrapper(callback):
+            self.routing.append((pattern, callback))
+            return callback
+        return wrapper
+
+    def match(self, path):
+        for (pattern, callback) in self.routing:
+            m = re.match(pattern, path)
+            if m:
+                return (callback, m.groups())
+        raise NotFound()
+
     def __call__(self, environ, start_response):
-        request = Request(environ)
-        response = Response('<h1>Hello World</h1>')
-        start_response(response.status, headers=response.headers.items())
+        try:
+            request = Request(environ)
+            callback, args = self.match(request.path) 
+            response = callback(request, *args)
+        except NotFound:
+            response = Response('<h1>404 Not Found</h1>', status=404)
+        start_response(response.status, response.headers.items())
         return response
 
