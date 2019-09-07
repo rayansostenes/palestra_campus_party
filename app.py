@@ -1,4 +1,4 @@
-from framework import App, Response
+from framework import App, Response, jsonify
 
 app = App()
 
@@ -9,5 +9,11 @@ def index(request):
 @app.route(r'^/hello/(\w+)$')
 def hello(request, name):
     return Response(f'<h1>Hello, {name} </h1>')
+
+@app.route(r'^/json$')
+def hello(request):
+    return jsonify({
+        'hello': 'World',
+    })
 
 application = app

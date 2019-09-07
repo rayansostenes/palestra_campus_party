@@ -37,6 +37,10 @@ class Response:
         yield self.response_body
 
 
+def jsonify(data):
+    import json
+    return Response(json.dumps(data), content_type='application/json')
+
 class App:
     def __init__(self):
         self.routing = []
