@@ -1,5 +1,6 @@
 import wsgiref.headers
 import re
+from parse import parse
 
 class NotFound(Exception):
     pass
@@ -52,17 +53,17 @@ class App:
         return wrapper
 
     def match(self, path):
-        for (pattern, callback) in self.routing:
-            m = re.match(pattern, path)
-            if m:
-                return (callback, m.groups())
+        for pattern, handler in self.routing:
+            parse_result = parse(pattern, path)
+            if parse_result is not None:
+                return handler, parse_result.named
         raise NotFound()
 
     def __call__(self, environ, start_response):
         try:
             request = Request(environ)
-            callback, args = self.match(request.path) 
-            response = callback(request, *args)
+            callback, kwargs = self.match(request.path) 
+            response = callback(request, **kwargs)
         except NotFound:
             response = Response('<h1>404 Not Found</h1>', status=404)
         start_response(response.status, response.headers.items())
